@@ -1,17 +1,104 @@
-# Token types
-#
-# EOF token is used to indicate that there is no more input left for lexical analysis
+import svgwrite
 
 CALL, FPOS, FORMATION, MOTION, PERSONNEL, SHIFT, STRENGTH, TPOS = \
     'CALL', 'FPOS', 'FORMATION', 'MOTION', 'PERSONNEL', 'SHIFT', 'STRENGTH', 'TPOS'
 
+LT, LG, C, RG, RT, FB, TB, Z, X, Y, QB = 'LT', 'LG', 'C', 'RG', 'RT', 'FB', 'TB', 'Z', 'X', 'Y', 'QB'
+
 
 class Play(object):
+    locations = dict(LT=(204, 240), LG=(222, 240), C=(237, 237), RG=(258, 240), RT=(276, 240), QB=(240, 258))
+    positions = [LT, LG, C, RG, RT, FB, TB, Z, X, Y, QB]
+
     def __init__(self, **kwargs):
         # receive the input from the interpreter and construct a play object
         self.text = {'call': kwargs['call'], 'personnel': kwargs['personnel'], 'formation': kwargs['formation'],
                      'strength': kwargs['strength'], 'fpos': kwargs['fpos'], 'shift': kwargs['shift'],
                      'motion': kwargs['motion'], 'tpos': kwargs['tpos']}
+        self.raw = kwargs['raw']
+        self.dwg = svgwrite.Drawing(filename='{name}.svg'.format(name=self.raw), size=(480, 480))
+        offense = self.dwg.add(self.dwg.g(id='offense', stroke='black', fill='white'))
+        for player in Play.positions:
+            if player == C:
+                offense.add(self.dwg.rect(id=player, insert=Play.locations[player],
+                                          size=(6, 6), stroke='black',
+                                          fill='white'))
+            elif player in [LT, LG, RG, RT, QB]:
+                offense.add(self.dwg.circle(id=player, center=Play.locations[player],
+                                            r=3, stroke='black',
+                                            fill='white'))
+            elif player == Y:
+                if kwargs['formation'].value in ['doubles', 'twins', 'pro']:
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(294, 240), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(186, 240), r=3, stroke='black', fill='white'))
+                elif kwargs['formation'].value == 'off':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(294, 231), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(186, 231), r=3, stroke='black', fill='white'))
+                elif kwargs['formation'].value == 'flex':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(330, 240), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(150, 240), r=3, stroke='black', fill='white'))
+            elif player == FB:
+                if kwargs['fpos'].value in ['near', 'far']:
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(258, 252), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(222, 252), r=3, stroke='black', fill='white'))
+                elif kwargs['fpos'].value == 'weak':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(168, 246), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(348, 246), r=3, stroke='black', fill='white'))
+                elif kwargs['fpos'].value == 'strong':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(348, 246), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(168, 246), r=3, stroke='black', fill='white'))
+            elif player == TB:
+                if kwargs['tpos']:
+                    if kwargs['tpos'].value == 'split':
+                        offense.add(self.dwg.circle(id=player, center=(132, 246), r=3, stroke='black', fill='white'))
+                    elif kwargs['tpos'].value == 'spread':
+                        offense.add(self.dwg.circle(id=player, center=(364, 246), r=3, stroke='black', fill='white'))
+                else:
+                    offense.add(self.dwg.circle(id=player, center=(240, 274), r=3, stroke='black', fill='white'))
+            elif player == X:
+                if kwargs['formation'] != 'doubles':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(18, 240), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(468, 240), r=3, stroke='black', fill='white'))
+                else:
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(18, 246), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(468, 246), r=3, stroke='black', fill='white'))
+            elif player == Z:
+                if kwargs['formation'].value == 'doubles':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(54, 240), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(432, 240), r=3, stroke='black', fill='white'))
+                elif kwargs['formation'].value == 'twins':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(54, 246), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(432, 246), r=3, stroke='black', fill='white'))
+                elif kwargs['formation'].value == 'off':
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(468, 240), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(18, 246), r=3, stroke='black', fill='white'))
+                elif kwargs['formation'].value in ['pro', 'flex']:
+                    if kwargs['strength'].value == 'right':
+                        offense.add(self.dwg.circle(id=player, center=(468, 246), r=3, stroke='black', fill='white'))
+                    else:
+                        offense.add(self.dwg.circle(id=player, center=(18, 246), r=3, stroke='black', fill='white'))
 
     def __repr__(self):
         return self.__str__()
@@ -23,24 +110,8 @@ class Play(object):
                 result += self.text[key].__str__() + ", "
         return result.strip(' ,')
 
-    @staticmethod
-    def SVG_writer(width: int, height: int, file: str = "output.svg") -> None:
-        output_file = open(file, 'w')
-        output_file.write(
-            "<?xml version=\"1.0\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n\t\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n")
-        output_file.write(
-            "<svg xmlns=\"http://www.w3.org/2000/svg\"\n\twidth=\"{}\" height=\"{}\">".format(width, height))
-        # Put contents of svg file here
-        output_file.write("</svg>")
-        return None
-
-
-class Player(object):
-    # An object for each player on the field
-    def __init__(self, position, shape, symbol):
-        self.position = position
-        self.shape = shape
-        self.symbol = symbol
+    def draw(self):
+        self.dwg.save()
 
 
 class Token(object):
@@ -139,15 +210,18 @@ class Interpreter(object):
         personnel = self.eat(PERSONNEL)
         formation = self.eat(FORMATION)
         strength = self.eat(STRENGTH)
-        tpos = self.eat(TPOS)
         fpos = self.eat(FPOS)
+        tpos = self.eat(TPOS)
         shift = self.eat(SHIFT)
         motion = self.eat(MOTION)
         call = self.eat(CALL)
 
         # TODO: Once we've tokenized the play call, build a play object
-        play = Play(personnel=personnel, formation=formation, strength=strength, tpos=tpos, fpos=fpos, shift=shift, motion=motion,
+        play = Play(raw=self.text, personnel=personnel, formation=formation, strength=strength, tpos=tpos, fpos=fpos,
+                    shift=shift,
+                    motion=motion,
                     call=call)
+        play.draw()
         return play
 
 
